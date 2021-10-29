@@ -21,7 +21,7 @@ export default {
     components: {
         PokemonTypeTag
     },
-    emits: ['newPokemonList'],
+    emits: ['filteredPokemonList'],
     data() {
         return {
             pokemonTypes: null,
@@ -49,12 +49,12 @@ export default {
         },
         async setNewPokemonList() {
             if (this.filteredPokemonTypes.length === 0) {
-                this.$emit('newPokemonList', null);
+                this.$emit('filteredPokemonList', null);
             }
             else if (this.filteredPokemonTypes.length === 1) {
                 const response = await axios.get(this.filteredPokemonTypes[0].url);
                 const finalPokemonList = removeExtraPokemons(response.data.pokemon.map((p) => p.pokemon));
-                this.$emit('newPokemonList', finalPokemonList);
+                this.$emit('filteredPokemonList', finalPokemonList);
             } else {
                 let newPokemonList = [];
                 const pokemonTypes = JSON.parse(JSON.stringify(this.filteredPokemonTypes));
@@ -67,7 +67,7 @@ export default {
                         newPokemonList = newPokemonList.filter((pokemon) => pokemons.map((p) => p.name).includes(pokemon.name));
                     }
                 }
-                this.$emit('newPokemonList', newPokemonList);
+                this.$emit('filteredPokemonList', newPokemonList);
             }
         },
         isTypeSelected(typeName) {

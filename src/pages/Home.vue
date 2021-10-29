@@ -14,40 +14,47 @@
             </div>
         </div>
         <div class="filter-container">
-            <pokemon-type-filter @newPokemonList="filterPokemonsByTypes"></pokemon-type-filter>
+            <div class="tool">
+                <label>Filter by pokemon types:</label>
+                <button
+                    @click="togglePokemonTypeFilter"
+                    class="button-toggle"
+                >{{ showPokemonTypeFilter ? '▲' : '▼' }}</button>
+            </div>
+            <pokemon-type-filter
+                :style="{ display: showPokemonTypeFilter ? null : 'none' }"
+                @filteredPokemonList="filterPokemonsByTypes"
+            ></pokemon-type-filter>
         </div>
         <div class="initial-fetch-spinner" v-if="isFetchingData">
             <bouncing-circle-spinner :size="100" />
         </div>
-        <div v-else-if="searchInput.length > 0 && (error && error.length > 0)">
+        <div v-else-if="error && error.length > 0">
             {{ error }}
         </div>
-        <div v-else :class="pokemonList.length > 3 ? 'pokemon-list-container' : 'pokemon-list-container-less-items'">
+        <div v-else :class="filteredPokemonList.length > 3 ? 'pokemon-list-container' : 'pokemon-list-container-less-items'">
             <pokemon-list-item
-                v-for="pokemon in pokemonList"
+                v-for="pokemon in filteredPokemonList"
                 :key="pokemon.name"
                 :pokemonDataUrl="pokemon.url"
-                @pokemonNotFound="setError"
             >
             </pokemon-list-item>
         </div>
-        <div class="button-container" v-if="showLoadMoreButton && !isFetchingData">
-            <button class="button-load-more" @click="loadMorePokemon" :disabled="isLoadingMore">
+        <div class="button-container" v-if="!isEndOfList">
+            <button class="button-load-more" @click="loadMorePokemon">
                 <span>Load More</span>
-                <bouncing-circle-spinner v-if="isLoadingMore" />
-                <span v-else>&#11167;</span>
+                <span>&#11167;</span>
             </button>
         </div>
     </div>
 </template>
 
 <script>
-// const Pokedex = require("pokeapi-js-wrapper");
-// const P = new Pokedex.Pokedex();
 import axios from 'axios';
 import PokemonListItem from '../components/pokemons/PokemonListItem.vue';
 import PokemonTypeFilter from '../components/pokemons/PokemonTypeFilter.vue';
 import BouncingCircleSpinner from '../components/spinners/BouncingCircleSpinner.vue';
+import { isNumeric, getPokemonIdFromUrl } from '../common';
 
 export default {
     components: {
@@ -57,17 +64,17 @@ export default {
     },
     data() {
         return {
-            pokemonList: [],
-            limit: 20,
+            fullPokemonList: [],
+            targetPokemonList: [],
+            filteredPokemonList: [],
+            listEndIndex: null,
+            isEndOfList: false,
+            limit: 4,
             totalCount: 898, // total is 898, after that is same pokemon different variation
-            nextPageUrl: null,
-            previousPageUrl: null,
             searchInput: '',
-            searchTimeout: null,
             sortOption: "id-asc",
+            showPokemonTypeFilter: false,
             isFetchingData: false,
-            isLoadingMore: false,
-            isSearching: false,
             error: null,
         }
     },
@@ -76,54 +83,16 @@ export default {
     },
     watch: {
         sortOption() {
-            if (this.searchInput.length === 0) {
-                this.fetchPokemonList();
-            }
+            this.resetListItemAmount();
+            this.setFilteredPokemonList();
         },
-        searchInput(value) {
-            clearTimeout(this.searchTimeout);
-
-            if (value && value.length > 0) {
-                this.isSearching = true;
-                this.searchTimeout = setTimeout(() => {
-                    // this.searchPokemon().finally(() => {
-                    //     this.isSearching = false;
-                    // });
-                    this.error = null;
-                    this.pokemonList = [];
-                    this.nextPageUrl = null;
-                    this.previousPageUrl = null;
-                    this.pokemonList.push({
-                        name: value,
-                        url: 'https://pokeapi.co/api/v2/pokemon/' + value
-                    });
-                }, 500);
-            } else {
-                this.error = null;
-                this.fetchPokemonList();
-                this.isSearching = false;
-            }
-        }
-    },
-    computed: {
-        showLoadMoreButton() {
-            if (this.sortOption === 'id-desc') {
-                return this.previousPageUrl && this.previousPageUrl.length > 0;
-            } else {
-                return this.nextPageUrl && this.nextPageUrl.length > 0;
-            }
+        searchInput() {
+            this.resetListItemAmount();
+            this.setFilteredPokemonList(true);
         }
     },
     methods: {
         fetchPokemonList() {
-            // P.getPokemonsList()
-            //     .then((response) => {
-            //         console.log(response);
-            //     });
-            // P.getPokemonByName(10003)
-            //     .then((response) => {
-            //         console.log(response);
-            //     });
             this.isFetchingData = true;
             
             // setTimeout(() => {
@@ -131,59 +100,79 @@ export default {
                 .get('https://pokeapi.co/api/v2/pokemon/',
                     {
                         params: {
-                            limit: this.limit,
-                            offset: this.sortOption === 'id-desc' ? this.totalCount - this.limit : null
+                            limit: this.totalCount
                         }
                     }
                 )
+                .catch((error) => {
+                    this.error = error.message;
+                    this.isEndOfList = true;
+                })
                 .then((response) => {
-                    this.pokemonList = this.sortOption === 'id-asc' ? response.data.results : response.data.results.reverse();
-                    this.nextPageUrl = response.data.next;
-                    this.previousPageUrl = response.data.previous;
-                    // this.totalCount = response.data.count;
+                    this.fullPokemonList = response.data.results;
+                    this.targetPokemonList = response.data.results;
+                    this.resetListItemAmount();
+                    this.setFilteredPokemonList();
                 })
                 .finally(() => {
                     this.isFetchingData = false;
                 });
             // }, 5000);
         },
+        setFilteredPokemonList() {
+            this.error = '';
+            let pokemonList;
+
+            if (this.searchInput && this.searchInput.length > 0) {
+                if (isNumeric(this.searchInput)) {
+                    pokemonList = this.targetPokemonList.filter((pokemon) => getPokemonIdFromUrl(pokemon.url) === parseInt(this.searchInput));
+                } else {
+                    pokemonList = this.targetPokemonList.filter((pokemon) => pokemon.name.includes(this.searchInput.toLowerCase()));
+                }
+            } else {
+                pokemonList = JSON.parse(JSON.stringify(this.targetPokemonList));
+            }
+
+            if (this.listEndIndex > pokemonList.length) {
+                this.listEndIndex = pokemonList.length;
+                this.isEndOfList = true;
+            } else if (this.listEndIndex === pokemonList.length) {
+                this.isEndOfList = true;
+            } else {
+                this.isEndOfList = false;
+            }
+
+            if (this.sortOption === 'id-asc') {
+                this.filteredPokemonList = pokemonList.slice(0, this.listEndIndex);
+            } else if (this.sortOption === 'id-desc') {
+                const reversedList = pokemonList.reverse();
+                this.filteredPokemonList = reversedList.slice(0, this.listEndIndex);
+            }
+
+            if (this.filteredPokemonList.length === 0) {
+                this.error = "No results found.";
+            }
+        },
         loadMorePokemon() {
-            this.isLoadingMore = true;
-            // setTimeout(() => {
-            axios
-                .get(this.sortOption === 'id-asc' ? this.nextPageUrl : this.previousPageUrl)
-                .then((response) => {
-                    this.pokemonList = this.pokemonList.concat(
-                        this.sortOption === 'id-asc'
-                        ? response.data.results
-                        : response.data.results.reverse()
-                    );
-                    this.nextPageUrl = response.data.next;
-                    this.previousPageUrl = response.data.previous;
-                })
-                .finally(() => {
-                    this.isLoadingMore = false;
-                });
-            // }, 5000);
-        },
-        searchPokemon() {
-            return axios
-                .get('https://pokeapi.co/api/v2/pokemon/' + this.searchInput)
-                .then((response) => {
-                    this.pokemonList = response.data.results;
-                    this.nextPageUrl = null;
-                    this.previousPageUrl = null;
-                });
-        },
-        setError() {
-            this.error = "No results found."
+            this.listEndIndex += this.limit;
+            this.setFilteredPokemonList();
         },
         filterPokemonsByTypes(newPokemonList) {
             if (!newPokemonList) {
-                this.fetchPokemonList();
+                this.targetPokemonList = this.fullPokemonList;
+                this.resetListItemAmount();
+                this.setFilteredPokemonList();
             } else {
-                this.pokemonList = newPokemonList;
+                this.targetPokemonList = newPokemonList;
+                this.resetListItemAmount();
+                this.setFilteredPokemonList();
             }
+        },
+        resetListItemAmount() {
+            this.listEndIndex = this.limit;
+        },
+        togglePokemonTypeFilter() {
+            this.showPokemonTypeFilter = !this.showPokemonTypeFilter;
         }
     },
 }
@@ -206,14 +195,25 @@ export default {
 
 .filter-container {
     display: flex;
+    flex-direction: column;
     margin-bottom: 1rem;
     width: 80%;
+    text-align: left;
+    gap: 0.25rem;
 }
 
 .tool {
     display: flex;
     align-items: center;
-    gap: 5px;
+}
+
+label {
+    margin-right: 5px;
+}
+
+input,
+select {
+    font: inherit;
 }
 
 .pokemon-list-container {
@@ -248,17 +248,23 @@ export default {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
 }
 
+.button-toggle:hover,
 .button-load-more:hover {
     cursor: pointer;
     color: #000000;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.50);
 }
 
-.button-load-more:disabled {
-    cursor: not-allowed;
-}
-
 .initial-fetch-spinner {
     padding-top: 2rem;
+}
+
+.button-toggle {
+    padding: 0.05rem 0.5rem;
+    border-radius: 5px;
+    background-color: #ffffff;
+    color: #808080;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
 }
 </style>

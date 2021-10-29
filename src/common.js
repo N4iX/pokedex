@@ -11,4 +11,8 @@ function getPokemonIdFromUrl(url) {
     return parseInt(numStr[1]);
 }
 
-export { capitalizeFirstLetter, removeExtraPokemons, getPokemonIdFromUrl };
+function isNumeric(value) {
+    return /^-?\d+$/.test(value);
+}
+
+export { capitalizeFirstLetter, removeExtraPokemons, getPokemonIdFromUrl, isNumeric };
