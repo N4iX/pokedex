@@ -1,8 +1,20 @@
 <template>
-    <span class="pokemon-type-tag" :style="{ backgroundColor: pillColor, fontSize: fontSize + 'pt' }">{{ type }}</span>
+    <span
+        class="pokemon-type-tag"
+        :class="(selectable && isSelected) ? 'selected-type' : null"
+        :style="{
+            backgroundColor: pillColor,
+            fontSize: fontSize + 'pt',
+            cursor: (selectable && !isDisabled) ? 'pointer' : null,
+            opacity: isDisabled ? 0.2 : 1.0
+        }"
+        @click="toggleIsSelected"
+    >{{ capitalizeFirstLetter(type) }}</span>
 </template>
 
 <script>
+import { capitalizeFirstLetter } from '../../common.js';
+
 export default {
     props: {
         type: {
@@ -13,8 +25,24 @@ export default {
             type: Number,
             requried: false,
             default: 8
+        },
+        selectable: {
+            type: Boolean,
+            required: false,
+            default: false
+        },
+        isDisabled: {
+            type: Boolean,
+            required: false,
+            default: false
         }
     },
+    data() {
+        return {
+            isSelected: false,
+        }
+    },
+    emits: ['typeClicked'],
     computed: {
         pillColor() {
             const t = this.type.toLowerCase();
@@ -78,6 +106,15 @@ export default {
             }
             return color;
         }
+    },
+    methods: {
+        capitalizeFirstLetter,
+        toggleIsSelected() {
+            if (this.selectable && !this.isDisabled) {
+                this.isSelected = !this.isSelected;
+                this.$emit('typeClicked');
+            }
+        }
     }
 }
 </script>
@@ -88,5 +125,11 @@ export default {
     padding: 0.25rem 0.75rem;
     color: #ffffff;
     text-align: center;
+    border: 2px solid transparent;
+}
+
+.selected-type {
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 </style>

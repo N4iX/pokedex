@@ -13,14 +13,21 @@
                 </select>
             </div>
         </div>
+        <div class="filter-container">
+            <pokemon-type-filter @newPokemonList="filterPokemonsByTypes"></pokemon-type-filter>
+        </div>
         <div class="initial-fetch-spinner" v-if="isFetchingData">
             <bouncing-circle-spinner :size="100" />
+        </div>
+        <div v-else-if="searchInput.length > 0 && (error && error.length > 0)">
+            {{ error }}
         </div>
         <div v-else :class="pokemonList.length > 3 ? 'pokemon-list-container' : 'pokemon-list-container-less-items'">
             <pokemon-list-item
                 v-for="pokemon in pokemonList"
                 :key="pokemon.name"
                 :pokemonDataUrl="pokemon.url"
+                @pokemonNotFound="setError"
             >
             </pokemon-list-item>
         </div>
@@ -39,11 +46,13 @@
 // const P = new Pokedex.Pokedex();
 import axios from 'axios';
 import PokemonListItem from '../components/pokemons/PokemonListItem.vue';
+import PokemonTypeFilter from '../components/pokemons/PokemonTypeFilter.vue';
 import BouncingCircleSpinner from '../components/spinners/BouncingCircleSpinner.vue';
 
 export default {
     components: {
         PokemonListItem,
+        PokemonTypeFilter,
         BouncingCircleSpinner
     },
     data() {
@@ -59,6 +68,7 @@ export default {
             isFetchingData: false,
             isLoadingMore: false,
             isSearching: false,
+            error: null,
         }
     },
     created() {
@@ -66,7 +76,9 @@ export default {
     },
     watch: {
         sortOption() {
-            this.fetchPokemonList();
+            if (this.searchInput.length === 0) {
+                this.fetchPokemonList();
+            }
         },
         searchInput(value) {
             clearTimeout(this.searchTimeout);
@@ -77,6 +89,7 @@ export default {
                     // this.searchPokemon().finally(() => {
                     //     this.isSearching = false;
                     // });
+                    this.error = null;
                     this.pokemonList = [];
                     this.nextPageUrl = null;
                     this.previousPageUrl = null;
@@ -86,6 +99,7 @@ export default {
                     });
                 }, 500);
             } else {
+                this.error = null;
                 this.fetchPokemonList();
                 this.isSearching = false;
             }
@@ -157,11 +171,19 @@ export default {
                 .get('https://pokeapi.co/api/v2/pokemon/' + this.searchInput)
                 .then((response) => {
                     this.pokemonList = response.data.results;
-                    console.log(this.searchInput)
-                    console.log(this.pokemonList)
                     this.nextPageUrl = null;
                     this.previousPageUrl = null;
                 });
+        },
+        setError() {
+            this.error = "No results found."
+        },
+        filterPokemonsByTypes(newPokemonList) {
+            if (!newPokemonList) {
+                this.fetchPokemonList();
+            } else {
+                this.pokemonList = newPokemonList;
+            }
         }
     },
 }
@@ -178,7 +200,13 @@ export default {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    margin: 1rem;
+    margin-bottom: 1rem;
+    width: 80%;
+}
+
+.filter-container {
+    display: flex;
+    margin-bottom: 1rem;
     width: 80%;
 }
 

@@ -8,7 +8,7 @@
                 <pokemon-type-tag
                     v-for="type in pokemon.types"
                     :key="type.name"
-                    :type="capitalizeFirstLetter(type.name)"
+                    :type="type.name"
                 ></pokemon-type-tag>
             </div>
         </div>
