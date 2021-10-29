@@ -30,6 +30,7 @@ export default {
             required: true
         }
     },
+    emits: ['pokemonNotFound'],
     data() {
         return {
             pokemon: {
@@ -56,6 +57,11 @@ export default {
                 // this.pokemon.types = [ {name: 'fighting'},{name: 'fighting'},{name: 'fighting'}];
                 this.pokemon.types = response.data.types.map((t) => t.type);
             })
+            .catch((error) => {
+                if (error.response.status === 404) {
+                    this.$emit('pokemonNotFound');
+                }
+            });
     },
     methods: {
         capitalizeFirstLetter,
