@@ -2,7 +2,15 @@
     <router-link :to="pokemonDetailsLink" class="pokemon-list-item" v-if="pokemon.id">
         <img :src="pokemon.imageUrl" :alt="pokemon.name">
         <div class="pokemon-list-item-info">
-            <div class="pokemon-id">#{{ pokemon.id }}</div>
+            <div class="pokemon-id">
+                <span>#{{ pokemon.id }}</span>
+                <span
+                    @click.prevent="onFavourite"
+                    class="favourite-icon"
+                    :class="{ 'favourite-icon-active': isFavourite }"
+                    title="Mark as favourite"
+                >&#10084;</span>
+            </div>
             <div class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</div>
             <div class="pokemon-types">
                 <pokemon-type-tag
@@ -28,9 +36,14 @@ export default {
         pokemonDataUrl: {
             type: String,
             required: true
+        },
+        isFavourite: {
+            type: Boolean,
+            required: false,
+            default: false,
         }
     },
-    emits: ['pokemonNotFound'],
+    emits: ['pokemonNotFound', 'onFavourite'],
     data() {
         return {
             pokemon: {
@@ -65,6 +78,9 @@ export default {
     },
     methods: {
         capitalizeFirstLetter,
+        onFavourite() {
+            this.$emit('onFavourite', this.pokemon.name);
+        }
     }
 }
 </script>
@@ -104,6 +120,9 @@ img {
 .pokemon-id {
     font-size: 12pt;
     color: #919191;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .pokemon-name {
@@ -118,5 +137,16 @@ img {
     display: flex;
     gap: 0.25rem;
     flex-wrap: wrap;
+}
+
+.favourite-icon {
+    font-size: 20pt;
+    margin: -10px 0;
+    color: #eeeeee;
+}
+
+.favourite-icon-active,
+.favourite-icon:hover {
+    color: #ff80ab;
 }
 </style>

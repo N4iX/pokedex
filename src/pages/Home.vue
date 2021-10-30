@@ -37,6 +37,8 @@
                 v-for="pokemon in filteredPokemonList"
                 :key="pokemon.name"
                 :pokemonDataUrl="pokemon.url"
+                :isFavourite="getIsFavourite(pokemon.name)"
+                @onFavourite="setFavouriteList(pokemon.name, pokemon.url)"
             >
             </pokemon-list-item>
         </div>
@@ -46,6 +48,7 @@
                 <span>&#11167;</span>
             </button>
         </div>
+        <router-link to="/favourite" class="button-favourite-page">&#10084;</router-link>
     </div>
 </template>
 
@@ -173,12 +176,31 @@ export default {
         },
         togglePokemonTypeFilter() {
             this.showPokemonTypeFilter = !this.showPokemonTypeFilter;
+        },
+        getIsFavourite(name) {
+            console.log(this.$store.getters.getIsFavouritePokemon(name));
+            return this.$store.getters.getIsFavouritePokemon(name);
+        },
+        setFavouriteList(pokemonName, pokemonUrl) {
+            const list = this.$store.getters.getFavouritePokemonList;
+            const index = list.map((pokemon) => pokemon.name).indexOf(pokemonName);
+            if (index === -1) {
+                list.push({ name: pokemonName, url: pokemonUrl });
+            } else {
+                list.splice(index, 1);
+            }
+            this.$store.commit('setFavouritePokemonList', list);
+            console.log(this.$store.getters.getFavouritePokemonList)
         }
     },
 }
 </script>
 
 <style scoped>
+a {
+    text-decoration: none;
+}
+
 .home-container {
     display: flex;
     flex-direction: column;
@@ -234,6 +256,32 @@ select {
     display: flex;
     justify-content: center;
     margin: 1rem 0;
+}
+
+.button-favourite-page {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    padding: 0.5rem 0.5rem;
+    font-size: 20pt;
+    color: #ff80ab;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+    margin-right: -0.25rem;
+}
+
+.button-favourite-page:hover {
+    cursor: pointer;
+    color: #ffffff;
+    background: #ff80ab;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+@media screen and (max-width: 700px) {
+    .button-favourite-page {
+        padding: 0.5rem 0.25rem;
+        font-size: 16pt;
+    }
 }
 
 .button-load-more {

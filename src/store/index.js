@@ -4,14 +4,21 @@ import axios from 'axios';
 const store = createStore({
     state: {
         pokemons: [],
+        favouritePokemonList: [],
         isPokemonListFetched: false,
     },
     getters: {
+        getFavouritePokemonList(state) {
+            return [...state.favouritePokemonList];
+        },
         getPokemons: (state) => (limit) => {
             return [...state.pokemons].slice(0, limit);
         },
-        getisPokemonListFetched(state) {
+        getIsPokemonListFetched(state) {
             return state.isPokemonListFetched;
+        },
+        getIsFavouritePokemon: (state) => (pokemonName) => {
+            return (state.favouritePokemonList.map((pokemon) => pokemon.name).indexOf(pokemonName) !== -1);
         }
     },
     mutations: {
@@ -20,6 +27,9 @@ const store = createStore({
         },
         setIsPokemonListFetched(state, payload) {
             state.isPokemonListFetched = payload;
+        },
+        setFavouritePokemonList(state, payload) {
+            state.favouritePokemonList = payload;
         }
     },
     actions: {
