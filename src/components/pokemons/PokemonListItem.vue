@@ -5,10 +5,10 @@
             <div class="pokemon-id">
                 <span>#{{ pokemon.id }}</span>
                 <span
-                    @click.prevent="onFavourite"
+                    @click="onFavourite($event)"
                     class="favourite-icon"
                     :class="{ 'favourite-icon-active': isFavourite }"
-                    title="Mark as favourite"
+                    :title="getTooltipText()"
                 >&#10084;</span>
             </div>
             <div class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</div>
@@ -40,7 +40,12 @@ export default {
         isFavourite: {
             type: Boolean,
             required: false,
-            default: false,
+            default: false
+        },
+        canMarkAsFavourite: {
+            type: Boolean,
+            required: false,
+            default: true
         }
     },
     emits: ['pokemonNotFound', 'onFavourite'],
@@ -65,9 +70,8 @@ export default {
             .then((response) => {
                 this.pokemon.id = response.data.id;
                 // this.pokemon.imageUrl = `https://cdn.traction.one/pokedex/pokemon/${response.data.id}.png`;
-                this.pokemon.imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${response.data.id}.png`;
+                this.pokemon.imageUrl = response.data.sprites.other['official-artwork']['front_default'];
                 this.pokemon.name = response.data.name;
-                // this.pokemon.types = [ {name: 'fighting'},{name: 'fighting'},{name: 'fighting'}];
                 this.pokemon.types = response.data.types.map((t) => t.type);
             })
             .catch((error) => {
@@ -78,8 +82,18 @@ export default {
     },
     methods: {
         capitalizeFirstLetter,
-        onFavourite() {
-            this.$emit('onFavourite', this.pokemon.name);
+        onFavourite(event) {
+            if (this.canMarkAsFavourite) {
+                event.preventDefault();
+                this.$emit('onFavourite', this.pokemon.name);
+            }
+        },
+        getTooltipText() {
+            if (this.canMarkAsFavourite && !this.isFavourite) {
+                return 'Mark as favourite';
+            } else {
+                return null;
+            }
         }
     }
 }
@@ -91,9 +105,9 @@ a {
 }
 
 .pokemon-list-item {
-    /* max-width: 200px; */
     background-color: #ffffff;
     border-radius: 5px;
+    overflow: hidden;
 }
 
 .pokemon-list-item:hover {
@@ -132,8 +146,6 @@ img {
 }
 
 .pokemon-types {
-    /* display: grid;
-    grid-template-columns: repeat(auto-fit, 1fr); */
     display: flex;
     gap: 0.25rem;
     flex-wrap: wrap;

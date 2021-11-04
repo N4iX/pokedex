@@ -1,5 +1,6 @@
 import { createStore } from 'vuex';
 import axios from 'axios';
+import { compareByUrl } from '../common.js';
 
 const store = createStore({
     state: {
@@ -29,6 +30,7 @@ const store = createStore({
             state.isPokemonListFetched = payload;
         },
         setFavouritePokemonList(state, payload) {
+            payload.sort(compareByUrl);
             state.favouritePokemonList = payload;
         }
     },

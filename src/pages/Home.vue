@@ -57,7 +57,7 @@ import axios from 'axios';
 import PokemonListItem from '../components/pokemons/PokemonListItem.vue';
 import PokemonTypeFilter from '../components/pokemons/PokemonTypeFilter.vue';
 import BouncingCircleSpinner from '../components/spinners/BouncingCircleSpinner.vue';
-import { isNumeric, getPokemonIdFromUrl } from '../common';
+import { isNumeric, getPokemonIdFromUrl, pokemonTotalCount } from '../common';
 
 export default {
     components: {
@@ -73,7 +73,7 @@ export default {
             listEndIndex: null,
             isEndOfList: false,
             limit: 4,
-            totalCount: 898, // total is 898, after that is same pokemon different variation
+            totalCount: pokemonTotalCount, // total is 898, after that is same pokemon different variation
             searchInput: '',
             sortOption: "id-asc",
             showPokemonTypeFilter: false,
@@ -178,7 +178,6 @@ export default {
             this.showPokemonTypeFilter = !this.showPokemonTypeFilter;
         },
         getIsFavourite(name) {
-            console.log(this.$store.getters.getIsFavouritePokemon(name));
             return this.$store.getters.getIsFavouritePokemon(name);
         },
         setFavouriteList(pokemonName, pokemonUrl) {

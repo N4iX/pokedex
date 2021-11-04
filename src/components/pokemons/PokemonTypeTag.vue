@@ -23,7 +23,7 @@ export default {
         },
         fontSize: {
             type: Number,
-            requried: false,
+            required: false,
             default: 8
         },
         selectable: {

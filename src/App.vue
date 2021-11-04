@@ -29,6 +29,7 @@ html {
 
 body {
   margin: 0;
+  margin-bottom: 2rem;
   background-color: #e0e0e0;
   color: #313131;
 }
