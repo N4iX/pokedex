@@ -24,7 +24,27 @@ function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
 }
 
-function compareByUrl(a, b) {
+function compareByIdAsc(a, b) {
+    if (a.id < b.id) {
+        return -1;
+    }
+    if (a.id > b.id) {
+        return 1;
+    }
+    return 0;
+}
+
+function compareByIdDesc(a, b) {
+    if (a.id < b.id) {
+        return 1;
+    }
+    if (a.id > b.id) {
+        return -1;
+    }
+    return 0;
+}
+
+function compareByUrlAsc(a, b) {
     if (getPokemonIdFromUrl(a.url) < getPokemonIdFromUrl(b.url)) {
         return -1;
     }
@@ -34,4 +54,25 @@ function compareByUrl(a, b) {
     return 0;
 }
 
-export { capitalizeFirstLetter, removeExtraPokemons, getPokemonIdFromUrl, isNumeric, pokemonTotalCount, onlyUnique, compareByUrl };
+function compareByUrlDesc(a, b) {
+    if (getPokemonIdFromUrl(a.url) < getPokemonIdFromUrl(b.url)) {
+        return 1;
+    }
+    if (getPokemonIdFromUrl(a.url) > getPokemonIdFromUrl(b.url)) {
+        return -1;
+    }
+    return 0;
+}
+
+export {
+    capitalizeFirstLetter,
+    removeExtraPokemons,
+    getPokemonIdFromUrl,
+    isNumeric,
+    pokemonTotalCount,
+    onlyUnique,
+    compareByIdAsc,
+    compareByIdDesc,
+    compareByUrlAsc,
+    compareByUrlDesc
+};

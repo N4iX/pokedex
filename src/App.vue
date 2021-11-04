@@ -3,12 +3,47 @@
 </template>
 
 <script>
+import { getPokemonIdFromUrl } from './common.js';
 
 export default {
   name: 'Pokedex',
   components: {
     
   },
+  mounted() {
+    if (localStorage.getItem('favPokemons')) {
+      try {
+        const favPokemons = JSON.parse(localStorage.getItem('favPokemons'));
+        let transformedList = [];
+        favPokemons.forEach((pokemon) => {
+          transformedList.push({
+            name: pokemon.name,
+            url: `https://pokeapi.co/api/v2/pokemon/${pokemon.id}/`
+          });
+        });
+        this.$store.commit('setFavouritePokemonList', transformedList);
+      } catch(e) {
+        localStorage.removeItem('favPokemons');
+      }
+    }
+
+    window.onbeforeunload = () => {
+      const list = this.$store.getters.getFavouritePokemonList;
+      let transformedList = [];
+      if (list.length > 0) {
+        list.forEach((pokemon) => {
+          transformedList.push({
+            id: getPokemonIdFromUrl(pokemon.url),
+            name: pokemon.name
+          });
+        });
+        const parsed = JSON.stringify(transformedList);
+        localStorage.setItem('favPokemons', parsed);
+      } else {
+        localStorage.removeItem('favPokemons');
+      }
+    }
+  }
 }
 </script>
 
@@ -24,7 +59,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  margin-top: 60px;
+  /* margin-top: 60px; */
 }
 
 body {

@@ -1,5 +1,8 @@
 <template>
     <div class="favourite-container">
+        <div class="page-title">
+            <h2>Favourite Pokémons</h2>
+        </div>
         <div class="tools-container">
             <div class="tool">
                 <label for="search">Search:</label>
@@ -15,7 +18,7 @@
         </div>
         <div class="filter-container">
             <div class="tool">
-                <label>Filter by pokemon types:</label>
+                <label>Filter by Pokémon types:</label>
                 <button
                     @click="togglePokemonTypeFilter"
                     class="button-toggle"
@@ -56,7 +59,7 @@
 import PokemonListItem from '../components/pokemons/PokemonListItem.vue';
 import PokemonTypeFilter from '../components/pokemons/PokemonTypeFilter.vue';
 import BouncingCircleSpinner from '../components/spinners/BouncingCircleSpinner.vue';
-import { isNumeric, getPokemonIdFromUrl, pokemonTotalCount } from '../common';
+import { isNumeric, pokemonTotalCount, compareByUrlAsc, compareByUrlDesc, getPokemonIdFromUrl } from '../common.js';
 
 export default {
     components: {
@@ -71,7 +74,7 @@ export default {
             filteredPokemonList: [],
             listEndIndex: null,
             isEndOfList: false,
-            limit: 4,
+            limit: 10,
             totalCount: pokemonTotalCount, // total is 898, after that is same pokemon different variation
             searchInput: '',
             sortOption: "id-asc",
@@ -90,7 +93,7 @@ export default {
         },
         searchInput() {
             this.resetListItemAmount();
-            this.setFilteredPokemonList(true);
+            this.setFilteredPokemonList();
         }
     },
     methods: {
@@ -129,12 +132,11 @@ export default {
             } else {
                 this.isEndOfList = false;
             }
-
+            
             if (this.sortOption === 'id-asc') {
-                this.filteredPokemonList = pokemonList.slice(0, this.listEndIndex);
+                this.filteredPokemonList = pokemonList.sort(compareByUrlAsc).slice(0, this.listEndIndex);
             } else if (this.sortOption === 'id-desc') {
-                const reversedList = pokemonList.reverse();
-                this.filteredPokemonList = reversedList.slice(0, this.listEndIndex);
+                this.filteredPokemonList = pokemonList.sort(compareByUrlDesc).slice(0, this.listEndIndex);
             }
 
             if (this.filteredPokemonList.length === 0) {
@@ -161,6 +163,9 @@ export default {
         },
         togglePokemonTypeFilter() {
             this.showPokemonTypeFilter = !this.showPokemonTypeFilter;
+        },
+        getPokemonUrl(id) {
+            return `https://pokeapi.co/api/v2/pokemon/${id}/`;
         }
     },
 }
@@ -284,5 +289,12 @@ select {
     color: #808080;
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+}
+
+.page-title {
+    background-color: #9e9e9e;
+    color: #ffffff;
+    width: 100%;
+    margin-bottom: 2rem;
 }
 </style>

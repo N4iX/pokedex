@@ -386,6 +386,7 @@ a:active {
 .pokemon-details-container {
     display: flex;
     justify-content: center;
+    margin-top: 60px;
 }
 
 .details-content {
