@@ -82,7 +82,6 @@ export default {
             default: 20
         }
     },
-    emits: ['setFavouriteList'],
     data() {
         return {
             targetPokemonList: [], // target pokemon list to be filtered, will point to 2 different list -> fullPokemonList & pokemon list after filtered by pokemon types (see method "filterPokemonsByTypes()"")
