@@ -1,7 +1,8 @@
 <template>
     <div class="evo-chain-item-container">
+        <bouncing-circle-spinner v-if="isFetchingData" :size="50" :delay="200" />
         <router-link
-            v-if="pokemon.id"
+            v-if="!isFetchingData && pokemon.id"
             :to="pokemonDetailsLink"
             class="pokemon-info"
         >
@@ -18,7 +19,7 @@
                 ></pokemon-type-tag>
             </div>
         </router-link>
-        <div v-if="hasNext">
+        <div v-if="!isFetchingData && hasNext">
             <div :class="{
                 'vertical-item-divider': (itemDividerType === 'vertical'),
                 'horizontal-item-divider': (itemDividerType === 'horizontal')
@@ -32,15 +33,15 @@
 <script>
 import axios from 'axios';
 import PokemonTypeTag from './PokemonTypeTag.vue';
-import { capitalizeFirstLetter } from '../../common.js';
+import { capitalizeFirstLetter } from '../../functions/common.js';
 
 export default {
     components: {
         PokemonTypeTag
     },
     props: {
-        pokemonName: {
-            type: String,
+        pokemonId: {
+            type: Number,
             required: true
         },
         hasNext: {
@@ -58,6 +59,7 @@ export default {
                 types: []
             },
             itemDividerType: null,
+            isFetchingData: false,
         }
     },
     computed: {
@@ -66,8 +68,9 @@ export default {
         }
     },
     created() {
+        this.isFetchingData = true;
         axios
-            .get(`https://pokeapi.co/api/v2/pokemon/${this.pokemonName}/`)
+            .get(`https://pokeapi.co/api/v2/pokemon/${this.pokemonId}/`)
             .then((response) => {
                 this.pokemon = {
                     id: response.data.id,
@@ -75,6 +78,9 @@ export default {
                     imageUrl: response.data.sprites.other['official-artwork']['front_default'],
                     types: response.data.types.map((t) => t.type)
                 };
+            })
+            .finally(() => {
+                this.isFetchingData = false;
             });
     },
     mounted() {

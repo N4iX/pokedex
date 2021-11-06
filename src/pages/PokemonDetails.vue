@@ -18,8 +18,16 @@
         >&#11166;
         </router-link>
     </div>
-    <div class="pokemon-details-container" v-if="!isFetchingPokemonData && !isFetchingPokemonSpeciesData && pokemon.name && pokemon.name.length > 0">
-        <div class="details-content">
+    <div class="pokemon-details-container">
+        <bouncing-circle-spinner
+            v-if="isFetchingPokemonData"
+            :size="100"
+            :delay="200"
+        />
+        <div
+            class="details-content"
+            v-else-if="pokemon.name && pokemon.name.length > 0"
+        >
             <div class="pokemon-id">
                 {{ '#' + pokemon.id }}
             </div>
@@ -72,6 +80,7 @@
                                 class="ability-name"
                             >{{ capitalizeFirstLetter(ability.name) }}
                             </span>
+                            <bouncing-circle-spinner v-if="ability.isLoading" :delay="100" />
                             <span
                                 v-if="ability.description && ability.description.length > 0 && ability.show"
                                 class="ability-description"
@@ -110,7 +119,8 @@
                     </div>
                 </div>
             </div>
-            <div>
+            <div class="evo-chain">
+                <bouncing-circle-spinner v-if="isFetchingPokemonSpeciesData" :size="100" :delay="200" />
                 <evolution-chain
                     v-if="pokemon.evoChainUrl && pokemon.evoChainUrl.length > 0"
                     :url="pokemon.evoChainUrl"
@@ -122,7 +132,7 @@
 
 <script>
 import axios from 'axios';
-import { capitalizeFirstLetter, pokemonTotalCount } from '../common.js';
+import { capitalizeFirstLetter, pokemonTotalCount } from '../functions/common.js';
 import PokemonTypeTag from '../components/pokemons/PokemonTypeTag.vue';
 import EvolutionChain from '../components/pokemons/EvolutionChain.vue';
 
@@ -156,6 +166,7 @@ export default {
             },
             isFetchingPokemonData: false,
             isFetchingPokemonSpeciesData: false,
+            isFetchingPokemonTypeData: false,
         }
     },
     computed: {
@@ -189,6 +200,7 @@ export default {
         }
     },
     watch: {
+        // reset and fetch pokemon data again when the "id" is changed
         id() {
             this.pokemon = {
                 id: null,
@@ -211,11 +223,9 @@ export default {
     created() {
         this.fetchPokemonData();
     },
-    updated() {
-        // this.fetchPokemonData();
-    },
     methods: {
         capitalizeFirstLetter,
+        // call API to fetch pokemon data
         fetchPokemonData() {
             this.isFetchingPokemonData = true;
 
@@ -226,9 +236,11 @@ export default {
                     this.pokemon.imageUrl = response.data.sprites.other['official-artwork']['front_default'];
                     this.pokemon.name = response.data.name;
                     this.pokemon.types = response.data.types.map((t) => t.type);
+                    // call API to fetch pokemon type data
                     this.fetchPokemonTypeData(this.pokemon.types.map((type) => type.url));
                     this.pokemon.height = response.data.height;
                     this.pokemon.weight = response.data.weight;
+                    // call API to fetch pokemon species data
                     this.fetchPokemonSpeciesData(response.data.species.url);
                     this.pokemon.abilities = response.data.abilities.map((a) => a.ability);
                     this.pokemon.stats = response.data.stats;
@@ -240,6 +252,7 @@ export default {
                     this.isFetchingPokemonData = false;
                 });
         },
+        // call API to fetch pokemon species data
         fetchPokemonSpeciesData(url) {
             this.isFetchingPokemonSpeciesData = true;
 
@@ -258,26 +271,36 @@ export default {
                     this.isFetchingPokemonSpeciesData = false;
                 });
         },
+        // call API to fetch pokemon type data
         async fetchPokemonTypeData(urlArray) {
+            this.isFetchingPokemonTypeData = true;
             this.pokemon.weaknesses = [];
+            // if only one type is selected, just get the weakness types from API
             if (urlArray.length === 1) {
                 const response = await axios.get(urlArray[0]);
                 this.pokemon.weaknesses = await response.data['damage_relations']['double_damage_from'];
-            } else if (urlArray.length > 1) {
+            } 
+            // if more than one type is selected, need to do some filtering
+            else if (urlArray.length > 1) {
                 let strongAgainst = [];
                 let tempArray = [];
 
+                // loop through each selected type, to concatenate all the strong types and weak types, filtering will be done in the last loop
                 urlArray.forEach(async(url, index) => {
                     const response = await axios.get(url);
                     const halfDamageFrom = await response.data['damage_relations']['half_damage_from'];
                     const noDamageFrom = await response.data['damage_relations']['no_damage_from'];
                     tempArray = strongAgainst.concat([...halfDamageFrom, ...noDamageFrom]);
+                    // get the types which the pokemon is strong against
                     strongAgainst = this.getUniqueTypes(tempArray);
                     tempArray = [];
                     tempArray = this.pokemon.weaknesses.concat(response.data['damage_relations']['double_damage_from']);
+                    // get the types which the pokemon is weak against
                     this.pokemon.weaknesses = this.getUniqueTypes(tempArray);
 
+                    // in the last loop
                     if (index === (urlArray.length - 1)) {
+                        // loop through the strongAgainst list, to remove the strongAgainst type from the weakness type list
                         strongAgainst.forEach((strongType) => {
                             const indexFound = this.pokemon.weaknesses.map((t) => t.name).indexOf(strongType.name);
                             if (indexFound !== -1) {
@@ -287,10 +310,13 @@ export default {
                     }
                 });
             }
+            this.isFetchingPokemonTypeData = false;
         },
+        // to get unique types for the WEAKNESS, because pokemon with two types can have the same weakness for each type
         getUniqueTypes(pokemonTypeArray) {
             return pokemonTypeArray.filter((type, index, array) => array.map((t) => t.name).indexOf(type.name) === index);
         },
+        // original stat name from the API is not suitable for display, so need to transform
         transformStatName(statName) {
             let transformedStatName;
 
@@ -318,13 +344,18 @@ export default {
             }
             return transformedStatName;
         },
+        // call API to load ability description
         loadAbilityDescription(index) {
             if (!this.pokemon.abilities[index].description) {
+                this.pokemon.abilities[index].isLoading = true;
                 axios
                     .get(this.pokemon.abilities[index].url)
                     .then((response) => {
-                        this.pokemon.abilities[index].description = response.data['effect_entries'].find((e) => e.language.name === "en").effect;
+                        this.pokemon.abilities[index].description = response.data['flavor_text_entries'].find((e) => e.language.name === "en")['flavor_text'];
                         this.pokemon.abilities[index].show = true;
+                    })
+                    .finally(() => {
+                        this.pokemon.abilities[index].isLoading = false;
                     });
             } else {
                 this.pokemon.abilities[index].show = !this.pokemon.abilities[index].show;
@@ -505,5 +536,10 @@ img {
 
 .color-female {
     color: #e91e63;
+}
+
+.evo-chain {
+    display: flex;
+    justify-content: center;
 }
 </style>

@@ -3,12 +3,12 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router.js';
 import store from './store/index.js';
-import BaseButton from './components/ui/BaseButton.vue';
+import BouncingCircleSpinner from './components/spinners/BouncingCircleSpinner.vue';
 
 const app = createApp(App);
 
 app.use(router);
 app.use(store);
-app.component('base-button', BaseButton);
+app.component('bouncing-circle-spinner', BouncingCircleSpinner);
 
 app.mount('#app');

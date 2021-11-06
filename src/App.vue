@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { getPokemonIdFromUrl } from './common.js';
+import { getPokemonIdFromUrl } from './functions/common.js';
 
 export default {
   name: 'Pokedex',

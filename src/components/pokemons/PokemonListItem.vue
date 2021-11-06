@@ -1,5 +1,8 @@
 <template>
-    <router-link :to="pokemonDetailsLink" class="pokemon-list-item" v-if="pokemon.id">
+    <div v-if="isFetchingData" class="loading-spinner">
+        <bouncing-circle-spinner :size="40" :delay="200" />
+    </div>
+    <router-link :to="pokemonDetailsLink" class="pokemon-list-item" v-if="!isFetchingData && pokemon.id">
         <img :src="pokemon.imageUrl" :alt="pokemon.name">
         <div class="pokemon-list-item-info">
             <div class="pokemon-id">
@@ -25,7 +28,7 @@
 
 <script>
 import axios from 'axios';
-import { capitalizeFirstLetter } from '../../common.js';
+import { capitalizeFirstLetter } from '../../functions/common.js';
 import PokemonTypeTag from './PokemonTypeTag.vue';
 
 export default {
@@ -57,6 +60,7 @@ export default {
                 name: null,
                 types: []
             },
+            isFetchingData: false
         }
     },
     computed: {
@@ -65,10 +69,12 @@ export default {
         }
     },
     created() {
+        this.isFetchingData = true;
         axios
             .get(this.pokemonDataUrl)
             .then((response) => {
                 this.pokemon.id = response.data.id;
+                // the image link below is not working for some pokemons
                 // this.pokemon.imageUrl = `https://cdn.traction.one/pokedex/pokemon/${response.data.id}.png`;
                 this.pokemon.imageUrl = response.data.sprites.other['official-artwork']['front_default'];
                 this.pokemon.name = response.data.name;
@@ -78,16 +84,21 @@ export default {
                 if (error.response.status === 404) {
                     this.$emit('pokemonNotFound');
                 }
+            })
+            .finally(() => {
+                this.isFetchingData = false;
             });
     },
     methods: {
         capitalizeFirstLetter,
+        // emit event when favourite button is clicked
         onFavourite(event) {
             if (this.canMarkAsFavourite) {
                 event.preventDefault();
                 this.$emit('onFavourite', this.pokemon.name);
             }
         },
+        // set the tooltip content of the favourite button
         getTooltipText() {
             if (this.canMarkAsFavourite && !this.isFavourite) {
                 return 'Mark as favourite';
@@ -160,5 +171,10 @@ img {
 .favourite-icon-active,
 .favourite-icon:hover {
     color: #ff80ab;
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
 }
 </style>

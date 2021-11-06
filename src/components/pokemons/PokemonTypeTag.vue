@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { capitalizeFirstLetter } from '../../common.js';
+import { capitalizeFirstLetter } from '../../functions/common.js';
 
 export default {
     props: {

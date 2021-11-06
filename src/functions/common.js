@@ -16,6 +16,11 @@ function getPokemonIdFromUrl(url) {
     return parseInt(numStr[1]);
 }
 
+function getPokemonIdFromSpeciesUrl(speciesUrl) {
+    const numStr = speciesUrl.match(/pokemon-species\/(\d+)\//);
+    return parseInt(numStr[1]);
+}
+
 function isNumeric(value) {
     return /^-?\d+$/.test(value);
 }
@@ -68,6 +73,7 @@ export {
     capitalizeFirstLetter,
     removeExtraPokemons,
     getPokemonIdFromUrl,
+    getPokemonIdFromSpeciesUrl,
     isNumeric,
     pokemonTotalCount,
     onlyUnique,

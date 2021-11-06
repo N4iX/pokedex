@@ -1,5 +1,5 @@
 <template>
-    <div class="fulfilling-bouncing-circle-spinner" :style="cssVars">
+    <div class="fulfilling-bouncing-circle-spinner" :style="cssVars" v-if="show">
         <div class="circle"></div>
         <div class="orbit"></div>
     </div>
@@ -15,6 +15,16 @@ export default {
         color: {
             type: String,
             required: false
+        },
+        delay: {
+            type: Number,
+            required: false,
+            default: 0
+        }
+    },
+    data() {
+        return {
+            show: false,
         }
     },
     computed: {
@@ -25,6 +35,15 @@ export default {
             }
         }
     },
+    mounted() {
+        if (this.delay > 0) {
+            setTimeout(() => {
+                this.show = true;
+            }, this.delay);
+        } else {
+            this.show = true;
+        }
+    }
 }
 </script>
 

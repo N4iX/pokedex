@@ -2,13 +2,14 @@
     <div class="evo-chain-container">
         <div class="info-text">
             <span class="info-title">Evolutions</span>
-            <span v-if="chain && chain.length <= 1">This Pokémon does not evolve.</span>
+            <span v-if="!isFetchingData && chain && chain.length <= 1">This Pokémon does not evolve.</span>
         </div>
         <div class="evo-chain-items">
+            <bouncing-circle-spinner v-if="isFetchingData" :size="80" :delay="200" />
             <evolution-chain-item
-                v-for="(pokemonName, index) in chain"
-                :key="pokemonName"
-                :pokemonName="pokemonName"
+                v-for="(species, index) in chain"
+                :key="species.name"
+                :pokemonId="getPokemonIdFromSpeciesUrl(species.url)"
                 :hasNext="index < (chain.length - 1)"
             ></evolution-chain-item>
         </div>
@@ -18,6 +19,7 @@
 <script>
 import axios from 'axios';
 import EvolutionChainItem from './EvolutionChainItem.vue';
+import { getPokemonIdFromSpeciesUrl } from '../../functions/common.js';
 
 export default {
     components: {
@@ -37,11 +39,12 @@ export default {
     },
     created() {
         this.isFetchingData = true;
+        
         axios
             .get(this.url)
             .then((response) => {
                 let evoChain = response.data.chain;
-                this.chain.push(evoChain.species.name);
+                this.chain.push(evoChain.species);
                 let hasNextEvolve = true;
 
                 while (hasNextEvolve) {
@@ -57,12 +60,14 @@ export default {
             .finally(() => {
                 this.isFetchingData = false;
             });
+        
     },
     methods: {
+        getPokemonIdFromSpeciesUrl,
         extractNextEvolve(evolution) {
             const evolvesTo = evolution['evolves_to'];
             if (evolvesTo && evolvesTo.length > 0) {
-                return evolvesTo[0].species.name;
+                return evolvesTo[0].species;
             } else {
                 return null;
             }
@@ -77,6 +82,7 @@ export default {
     background-color: #424242;
     display: flex;
     flex-direction: column;
+    width: 100%;
     gap: 1rem;
     padding: 1rem;
 }
