@@ -6,7 +6,7 @@
             :to="pokemonDetailsLink"
             class="pokemon-info"
         >
-            <img :src="pokemon.imageUrl" :alt="pokemon.name">
+            <img class="pokemon-evo-image" :src="pokemon.imageUrl" :alt="pokemon.name">
             <div class="info-row">
                 <span class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</span>
                 <span class="pokemon-id">#{{ pokemon.id }}</span>
@@ -139,8 +139,10 @@ a {
     border-radius: 10px;
 }
 
-.pokemon-info:hover {
-    background: #616161;
+@media(hover: hover) and (pointer: fine) {
+    .pokemon-info:hover {
+        background: #616161;
+    }
 }
 
 .pokemon-types {
@@ -159,7 +161,7 @@ a {
     color: #bdbdbd;
 }
 
-img {
+img.pokemon-evo-image {
     border: 5px solid #ffffff;
     border-radius: 50%;
     width: 100%;

@@ -29,7 +29,7 @@
     <div v-if="isFetchingDataFromTypeFilter">
         <bouncing-circle-spinner :size="80" :delay="200" />
     </div>
-    <div v-else-if="error && error.length > 0">
+    <div v-else-if="error && error.length > 0" :class="isSpecialError ? 'special-error' : null">
         {{ error }}
     </div>
     <div v-else :class="filteredPokemonList.length > 3 ? 'pokemon-list-container' : 'pokemon-list-container-less-items'">
@@ -46,7 +46,7 @@
     <div class="button-container" v-if="!isEndOfList && !isFetchingDataFromTypeFilter">
         <button class="button-load-more" @click="loadMorePokemon">
             <span>Load More</span>
-            <span>&#11167;</span>
+            <img class="icon-down-arrow" src="../../assets/down-arrow.png" alt="down-arrow-icon">
         </button>
     </div>
 </template>
@@ -61,6 +61,7 @@ export default {
         PokemonListItem,
         PokemonTypeFilter
     },
+    emits: ['onFavouriteChange'],
     props: {
         fullPokemonList: {
             type: Array,
@@ -92,7 +93,8 @@ export default {
             sortOption: "id-asc",
             showPokemonTypeFilter: false,
             error: null,
-            isFetchingDataFromTypeFilter: false
+            isFetchingDataFromTypeFilter: false,
+            isSpecialError: false
         }
     },
     created() {
@@ -121,14 +123,21 @@ export default {
         // combine all the filters (search input, pokemon type filter, sort option), and produce the final filtered list
         setFilteredPokemonList() {
             this.error = '';
+            this.isSpecialError = false;
             let pokemonList;
 
             // filter the list based on search input, can be ID or name
-            if (this.searchInput && this.searchInput.length > 0) {
-                if (isNumeric(this.searchInput)) {
-                    pokemonList = this.targetPokemonList.filter((pokemon) => getPokemonIdFromUrl(pokemon.url) === parseInt(this.searchInput));
+            if (this.searchInput && this.searchInput.trim().length > 0) {
+                const searchText = this.searchInput.trim();
+                if (searchText.toLowerCase() === "foong shi wei") {
+                    pokemonList = [];
+                    this.isSpecialError = true;
+                    this.error = "This is a lenglui, not a Pokemon. 😉";
+                    return;
+                } else if (isNumeric(searchText)) {
+                    pokemonList = this.targetPokemonList.filter((pokemon) => getPokemonIdFromUrl(pokemon.url) === parseInt(searchText));
                 } else {
-                    pokemonList = this.targetPokemonList.filter((pokemon) => pokemon.name.includes(this.searchInput.toLowerCase()));
+                    pokemonList = this.targetPokemonList.filter((pokemon) => pokemon.name.includes(searchText.toLowerCase()));
                 }
             } else {
                 pokemonList = JSON.parse(JSON.stringify(this.targetPokemonList));
@@ -189,7 +198,7 @@ export default {
         },
         // update the favouritePokemonList in Vuex store
         setFavouriteList(pokemonName, pokemonUrl) {
-            const list = this.$store.getters.getFavouritePokemonList;
+            let list = this.$store.getters.getFavouritePokemonList;
             const index = list.map((pokemon) => pokemon.name).indexOf(pokemonName);
             if (index === -1) {
                 list.push({ name: pokemonName, url: pokemonUrl });
@@ -197,7 +206,28 @@ export default {
             } else {
                 list.splice(index, 1);
             }
+
+            let transformedList = [];
+            if (list.length > 0) {
+                list.forEach((pokemon) => {
+                    transformedList.push({
+                        id: getPokemonIdFromUrl(pokemon.url),
+                        name: pokemon.name
+                    });
+                });
+                const parsed = JSON.stringify(transformedList);
+                localStorage.setItem('favPokemons', parsed);
+            } else {
+                localStorage.removeItem('favPokemons');
+            }
+
             this.$store.commit('setFavouritePokemonList', list);
+            if (this.isAllFavourite) {
+                this.$emit('onFavouriteChange');
+                const index = this.targetPokemonList.map((pokemon) => pokemon.name).indexOf(pokemonName);
+                this.targetPokemonList.splice(index, 1);
+                this.setFilteredPokemonList();
+            }
         },
         setIsFetchingDataFromTypeFilter() {
             this.isFetchingDataFromTypeFilter = true;
@@ -276,11 +306,13 @@ select {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
 }
 
-.button-toggle-type-filter:hover,
-.button-load-more:hover {
-    cursor: pointer;
-    color: #000000;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.50);
+@media(hover: hover) and (pointer: fine) {
+    .button-toggle-type-filter:hover,
+    .button-load-more:hover {
+        cursor: pointer;
+        color: #000000;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.50);
+    }
 }
 
 .button-toggle-type-filter {
@@ -290,5 +322,23 @@ select {
     color: #808080;
     border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+}
+
+@media(hover: hover) and (pointer: fine) {
+    .button-load-more:hover .icon-down-arrow {
+        opacity: 1;
+    }
+}
+
+.icon-down-arrow {
+    height: 16px;
+    opacity: 0.5;
+}
+
+.special-error {
+    background-color: #ffffff;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 20px;
 }
 </style>

@@ -6,8 +6,8 @@
         <pokemon-list
             :fullPokemonList="favouritePokemonList"
             :isAllFavourite="true"
-            :canFavourite="false"
             :pageLimit="20"
+            @onFavouriteChange="getFavouritePokemonList()"
         ></pokemon-list>
         <router-link to="/home" class="button-home">&#10094;</router-link>
     </div>
@@ -33,7 +33,6 @@ export default {
         getFavouritePokemonList() {
             // get favourite pokemon list from Vuex store getter
             const favourites = JSON.parse(JSON.stringify(this.$store.getters.getFavouritePokemonList));
-            // favourite list is not empty
             this.favouritePokemonList = favourites;
         }
     },
@@ -55,7 +54,7 @@ a {
     position: fixed;
     top: 50%;
     left: 0;
-    padding: 0.3rem 0.5rem 0.5rem 0.3rem;
+    padding: 0.3rem 1.0rem 0.5rem 0.8rem;
     font-size: 20pt;
     color: #424242;
     background: #ffffff;
@@ -63,16 +62,18 @@ a {
     margin-right: -0.25rem;
 }
 
-.button-home:hover {
-    cursor: pointer;
-    color: #ffffff;
-    background: #424242;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+@media(hover: hover) and (pointer: fine) {
+    .button-home:hover {
+        cursor: pointer;
+        color: #ffffff;
+        background: #424242;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
 }
 
 @media screen and (max-width: 700px) {
     .button-home {
-        padding: 0.3rem 0.25rem 0.4rem 0.15rem;
+        padding: 0.3rem 0.7rem 0.4rem 0.5rem;
         font-size: 16pt;
     }
 }

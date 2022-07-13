@@ -1,10 +1,15 @@
 <template>
-  <router-view></router-view>
+  <div class="page-content">
+    <router-view></router-view>
+  </div>
+  <footer>
+    <div class="created-by">
+      <span>Created by <a href="https://github.com/N4iX" target="_blank">Chew Hao Xian</a></span>
+    </div>
+  </footer>
 </template>
 
 <script>
-import { getPokemonIdFromUrl } from './functions/common.js';
-
 export default {
   name: 'Pokedex',
   components: {
@@ -23,23 +28,6 @@ export default {
         });
         this.$store.commit('setFavouritePokemonList', transformedList);
       } catch(e) {
-        localStorage.removeItem('favPokemons');
-      }
-    }
-
-    window.onbeforeunload = () => {
-      const list = this.$store.getters.getFavouritePokemonList;
-      let transformedList = [];
-      if (list.length > 0) {
-        list.forEach((pokemon) => {
-          transformedList.push({
-            id: getPokemonIdFromUrl(pokemon.url),
-            name: pokemon.name
-          });
-        });
-        const parsed = JSON.stringify(transformedList);
-        localStorage.setItem('favPokemons', parsed);
-      } else {
         localStorage.removeItem('favPokemons');
       }
     }
@@ -64,8 +52,28 @@ html {
 
 body {
   margin: 0;
-  margin-bottom: 2rem;
   background-color: #e0e0e0;
   color: #313131;
+}
+
+.page-content {
+  margin-bottom: 2rem;
+  min-height: 100vh;
+}
+
+footer {
+  background-color: #ffffff;
+  padding: 1rem;
+}
+
+.created-by {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.created-by a {
+  font-weight: bold;
+  text-decoration: none;
+  color: black;
 }
 </style>

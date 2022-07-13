@@ -2,20 +2,22 @@
     <div class="nav-buttons-container">
         <router-link
             :class="{ 'disabled-link': !previousPokemonUrl || previousPokemonUrl.length === 0 }"
-            class="button-previous"
+            class="top-nav-link button-previous"
             :to="previousPokemonUrl"
-        >&#11164;
+        >
+            <img class="icon-left-arrow" src="../assets/left-arrow.png" alt="left-arrow-icon">
         </router-link>
         <router-link
             to="/home"
-            class="button-home"
+            class="top-nav-link button-home"
         >Home
         </router-link>
         <router-link
             :class="{ 'disabled-link': !nextPokemonUrl || nextPokemonUrl.length === 0 }"
-            class="button-next"
+            class="top-nav-link button-next"
             :to="nextPokemonUrl"
-        >&#11166;
+        >
+            <img class="icon-right-arrow" src="../assets/right-arrow.png" alt="right-arrow-icon">
         </router-link>
     </div>
     <div class="pokemon-details-container">
@@ -36,7 +38,7 @@
             </div>
             <div class="info-containers">
                 <div class="pokemon-image info-1">
-                    <img :src="pokemon.imageUrl" :alt="capitalizeFirstLetter(pokemon.name)">
+                    <img class="pokemon-image" :src="pokemon.imageUrl" :alt="capitalizeFirstLetter(pokemon.name)">
                 </div>
                 <div class="info-2">
                     <p class="pokemon-description">
@@ -366,12 +368,13 @@ export default {
 </script>
 
 <style scoped>
-a {
+a.top-nav-link {
     cursor: pointer;
     text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: 0.5rem 1rem;
     background-color: #f5f5f5;
     color: #808080;
@@ -379,20 +382,23 @@ a {
     font: inherit;
 }
 
-a:hover,
-a:active {
-    color: #000000;
-    background-color: #ffffff;
+@media(hover: hover) and (pointer: fine) {
+    a.top-nav-link:hover {
+        color: #000000;
+        background-color: #ffffff;
+    }
 }
 
-.disabled-link {
+a.top-nav-link.disabled-link {
     cursor: default;
     background-color: #e0e0e0;
 }
 
-.disabled-link:hover {
-    background-color: #e0e0e0;
-    color: #808080;
+@media(hover: hover) and (pointer: fine) {
+    .disabled-link:hover {
+        background-color: #e0e0e0;
+        color: #808080;
+    }
 }
 
 .nav-buttons-container {
@@ -461,7 +467,7 @@ a:active {
     }
 }
 
-img {
+img.pokemon-image {
     width: 100%;
     max-width: 500px;
     min-width: 100px;
@@ -509,6 +515,7 @@ img {
 
 .ability-name {
     cursor: pointer;
+    text-decoration: underline;
 }
 
 .ability-description {
@@ -541,5 +548,17 @@ img {
 .evo-chain {
     display: flex;
     justify-content: center;
+}
+
+.icon-left-arrow,
+.icon-right-arrow {
+    height: 20px;
+    opacity: 0.5;
+}
+
+@media(hover: hover) and (pointer: fine) {
+    a.top-nav-link:not(.disabled-link):hover img {
+        opacity: 1.0;
+    }
 }
 </style>

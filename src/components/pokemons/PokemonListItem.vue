@@ -3,16 +3,18 @@
         <bouncing-circle-spinner :size="40" :delay="200" />
     </div>
     <router-link :to="pokemonDetailsLink" class="pokemon-list-item" v-if="!isFetchingData && pokemon.id">
-        <img :src="pokemon.imageUrl" :alt="pokemon.name">
+        <img class="pokemon-image" :src="pokemon.imageUrl" :alt="pokemon.name">
         <div class="pokemon-list-item-info">
             <div class="pokemon-id">
                 <span>#{{ pokemon.id }}</span>
                 <span
                     @click="onFavourite($event)"
                     class="favourite-icon"
-                    :class="{ 'favourite-icon-active': isFavourite }"
+                    :class="{ 'active': isFavourite }"
                     :title="getTooltipText()"
-                >&#10084;</span>
+                >
+                    <img src="../../assets/heart-icon.jpg" alt="heart-icon">
+                </span>
             </div>
             <div class="pokemon-name">{{ capitalizeFirstLetter(pokemon.name) }}</div>
             <div class="pokemon-types">
@@ -121,12 +123,14 @@ a {
     overflow: hidden;
 }
 
-.pokemon-list-item:hover {
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+@media(hover: hover) and (pointer: fine) {
+    .pokemon-list-item:hover {
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+    }
 }
 
-img {
+img.pokemon-image {
     width: 100%;
     max-width: 400px;
     min-width: 150px;
@@ -163,14 +167,25 @@ img {
 }
 
 .favourite-icon {
-    font-size: 20pt;
     margin: -10px 0;
-    color: #eeeeee;
 }
 
-.favourite-icon-active,
-.favourite-icon:hover {
-    color: #ff80ab;
+.favourite-icon img {
+    height: 30px;
+    filter: grayscale(1);
+    opacity: 0.2;
+}
+
+.favourite-icon.active img{
+    filter: none;
+    opacity: 1;
+}
+
+@media(hover: hover) and (pointer: fine) {
+    .favourite-icon:hover img {
+        filter: none;
+        opacity: 0.5;
+    }
 }
 
 .loading-spinner {

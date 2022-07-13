@@ -26,7 +26,11 @@ const router = createRouter({
             path: '/:notFound(.*)',
             component: PageNotFound
         }
-    ]
+    ],
+    scrollBehavior() {
+        // always scroll to top
+        return { top: 0 };
+    }
 });
 
 export default router;

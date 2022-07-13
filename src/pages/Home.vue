@@ -11,7 +11,9 @@
             :fullPokemonList="fullPokemonList"
             :pageLimit="20"
         ></pokemon-list>
-        <router-link to="/favourite" class="button-favourite-page">&#10084;</router-link>
+        <router-link to="/favourite" class="button-favourite-page">
+            <img class="favourite-page-heart-icon" src="../assets/heart-icon.jpg" alt="heart-icon">
+        </router-link>
     </div>
 </template>
 
@@ -79,23 +81,25 @@ a {
     top: 50%;
     right: 0;
     padding: 0.5rem 0.5rem;
-    font-size: 20pt;
-    color: #ff80ab;
     background: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
-    margin-right: -0.25rem;
 }
 
-.button-favourite-page:hover {
-    cursor: pointer;
-    color: #ffffff;
-    background: #ff80ab;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+@media(hover: hover) and (pointer: fine) {
+    .button-favourite-page:hover {
+        cursor: pointer;
+        background: #ff80ab;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .button-favourite-page:hover img {
+        filter: brightness(0) invert(1);
+    }
 }
 
 @media screen and (max-width: 700px) {
     .button-favourite-page {
-        padding: 0.5rem 0.25rem;
+        padding: 0.5rem 0.2rem;
         font-size: 16pt;
     }
 }
@@ -109,5 +113,10 @@ a {
     color: #ffffff;
     width: 100%;
     margin-bottom: 2rem;
+}
+
+.favourite-page-heart-icon {
+    height: 30px;
+    margin-bottom: -5px;
 }
 </style>
